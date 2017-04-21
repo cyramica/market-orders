@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+  <p>Key: <input name="Key" type="text" maxlength="255" id="keyID" class="inputText" /></p>
+  <p>Verification: <input name="verification" type="text" maxlength="255" id="vCode" class="inputText" /></p>
+  <input type="button" value="Go" onclick="startaSkiten(keyID.value, vCode.value);">
+  <div id="mainContent"></div>
+
+  <script>
+
+    if (localStorage.getItem('keyID') != null) {
+        document.getElementById('keyID').value = localStorage.getItem('keyID');
+        document.getElementById('vCode').value = localStorage.getItem('vCode');
+    }
+
+    function startaSkiten(keyID, vCode) {
+        console.log(keyID + vCode);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "https://api.eveonline.com/char/MarketOrders.xml.aspx?keyID=" + keyID + "&vCode=" + vCode, false);
+
+        //xhr.setRequestHeader('Content-Type', 'text/xml');
+        xhr.send();
+
+        var xmlDocument = xhr.responseXML;
+        var data = xmlDocument.getElementsByTagName("row");
+
+        document.getElementById('mainContent').innerHTML = "";
+
+        for (i = 0; i < data.length; i++) {
+
+            // orderState:  0 = open/active 1 = closed, 2 = expired, 3 = cancelled, 4 = pending, 5 = character deleted
+
+            if (data[i].getAttribute('orderState') == "2") {
+
+                stationID = data[i].getAttribute('stationID');
+                typeID = data[i].getAttribute('typeID')
+                item = getItemName(data[i].getAttribute('typeID'));
+                document.getElementById('mainContent').innerHTML += "stationID: " + stationID + "<br>";
+                document.getElementById('mainContent').innerHTML += "Item: " + i + " " + item + "<br><br>";
+                eveMarketData(typeID, stationID);
+
+            }
+
+        }
+        localStorage.setItem('keyID', keyID);
+        localStorage.setItem('vCode', vCode);
+
+    }
+
+    function eveMarketData(typeID, stationID) {
+        var xhrEMD = new XMLHttpRequest();
+        xhrEMD.open("GET", "https://eve-marketdata.com/api/item_prices2.json?char_name=demo&type_ids=" + typeID + "&station_ids=" + stationID + "&buysell=s", true);
+        xhrEMD.send();
+
+        //var emdJson = JSON.parse(xhrEMD.response());
+        //document.write(emdJson);
+        //return(emdJson);
+    }
+
+
+    function getItemName(name) {
+        var xhrItemName = new XMLHttpRequest();
+        xhrItemName.open("GET", "https://api.eveonline.com/eve/TypeName.xml.aspx?ids=" + name , false);
+        xhrItemName.send();
+        xmlItemName = xhrItemName.responseXML;
+        var itemData = xmlItemName.getElementsByTagName("row");
+        return itemData[0].getAttribute('typeName');
+    }
+
+
+  </script>
+
+
+</body>
+</html>
