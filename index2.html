@@ -42,7 +42,7 @@
                                 item = getItemName(data[i].getAttribute('typeID'));
                                 document.getElementById('mainContent').innerHTML += "stationID: " + stationID + "<br>";
                                 document.getElementById('mainContent').innerHTML += "Item: " + i + " " + item + "<br><br>";
-                                eveMarketData(typeID, stationID);
+                                maxPrice = eveMarketData(typeID, stationID);
 
                 }
             }   
@@ -65,11 +65,12 @@
     function eveMarketData(typeID, stationID) {
         var xhrEMD = new XMLHttpRequest();
         if ('withCredentials' in xhrEMD) {
-            xhrEMD.open("GET", "https://eve-marketdata.com/api/item_prices2.json?char_name=Afasi&type_ids=" + typeID + "&station_ids=" + stationID + "&buysell=s", true);
+            xhrEMD.open("GET", "http://api.eve-central.com/api/marketstat/json?typeid=" + typeID + "&stationid=" + stationID, true);
 
             xhrEMD.onreadystatechange = function() {
                 if (xhrEMD.readyState == 4) {
-                    var emdJson = JSON.parse(xhrEMD);
+                    document.write(xhrEMD.reponseXML + "<br>");
+                    var emdJson = JSON.parse(xhrEMD.responseXML);
                     document.write(emdJson);
                     return(emdJson);
                 }
