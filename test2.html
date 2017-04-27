@@ -54,12 +54,15 @@
         var names = [];
         var myPrice = [];
         var orderType = [];  // Buy or sell order
+
+        var jsonTest = '{"orders" : [';
         
             for (i = 0; i < data.length; i++) {
 
                 // orderState:  0 = open/active 1 = closed, 2 = expired, 3 = cancelled, 4 = pending, 5 = character deleted
 
                 if (data[i].getAttribute('orderState') == "2") {
+                    var orderID = data[i].getAttribute('orderID');
 
                     stations[i] = data[i].getAttribute('stationID');
                     console.log('item: ' + i + ' debug: 1 - stationID: ' + stations[i] + '<br>');
@@ -79,12 +82,21 @@
 
                     myPrice[i] = data[i].getAttribute('price');
                     
-                    
+                    if (jsonTest.length === 13) {
+                        jsonTest += '{"stationID":"' + stations[i] + '" , "typeID":"' + items[i] + '"}'
+                    } else {
+                        jsonTest += ', {"stationID":"' + stations[i] + '" , "typeID":"' + items[i] + '"}'
+                    }
 
                 }
                 
             
             }
+            jsonTest += ' ]}';
+            console.log(jsonTest);
+            var pjsonTest = JSON.parse(jsonTest);
+            console.log(pjsonTest);
+
             items.sort();
             if (items.length > 0) {
                 console.log('Preparing to get item names. items array: ' + items);
