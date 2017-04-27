@@ -3,6 +3,7 @@
 <body>
 <!--    <script src="evecentral.js"></script> -->
     <script src="eveapi.js"></script>
+    <script src="get_max_price.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 
@@ -31,28 +32,7 @@
     }
 
 
-    function get_max_price(items) {
 
-        var xhr2 = new XMLHttpRequest();
-        var typeIDs = "";
-        var maxItemPrice = [];
-        for (i = 0; i < items.length; i++) {
-            typeIDs += "&typeid=" + items[i];
-            console.log('get_max_price typeIDs: ' + typeIDs);
-        }
-
-        xhr2.open("GET", "http://api.eve-central.com/api/marketstat/json?" + typeIDs, false);
-        console.log('maxPrice opening: http://api.eve-central.com/api/marketstat/json?' + typeIDs )
-        xhr2.setRequestHeader('Content-Type', 'text/plain');
-        xhr2.send();
-
-        var data = JSON.parse(xhr2.response);
-        for (i = 0; i < data.length; i++) {
-            maxItemPrice[i] = data[i].buy.max;
-        }
-        return maxItemPrice;
-
-    }
 
 
     function starta_skiten(keyID, vCode) {
@@ -72,46 +52,68 @@
         var items = [];
         var prices = [];
         var names = [];
+        var myPrice = [];
         var orderType = [];  // Buy or sell order
+        
+            for (i = 0; i < data.length; i++) {
 
-        for (i = 0; i < data.length; i++) {
+                // orderState:  0 = open/active 1 = closed, 2 = expired, 3 = cancelled, 4 = pending, 5 = character deleted
 
-            // orderState:  0 = open/active 1 = closed, 2 = expired, 3 = cancelled, 4 = pending, 5 = character deleted
+                if (data[i].getAttribute('orderState') == "2") {
 
-            if (data[i].getAttribute('orderState') == "2") {
+                    stations[i] = data[i].getAttribute('stationID');
+                    console.log('item: ' + i + ' debug: 1 - stationID: ' + stations[i] + '<br>');
 
-                stations[i] = data[i].getAttribute('stationID');
-                console.log('item: ' + i + ' debug: 1 - stationID: ' + stations[i] + '<br>');
+                    items[i] = data[i].getAttribute('typeID');
+                    
+                    console.log('item: ' + i + ' debug: 2 - typeID: ' + items[i] + '<br>');
 
-                items[i] = data[i].getAttribute('typeID');
-                console.log('item: ' + i + ' debug: 2 - typeID: ' + items[i] + '<br>');
+                    orderType[i] = data[i].getAttribute('bid');
+                    if (orderType[i] != 1) {
+                        console.log('item: ' + i + ' debug 5 - buy or sell: Buy');
+                        orderType[i] = 'Buy';
+                    } else {
+                        console.log('item: ' + i + ' debug 5 - buy or sell: Sell')
+                        orderType[i] = 'Sell';
+                    }
 
-                //names[i] = get_item_name(items[i]);
-                //console.log('item: ' +i + ' debug: 3 - item name: ' + names[i]);
-                console.log(data[i].getAttribute(''))
+                    myPrice[i] = data[i].getAttribute('price');
+                    
+                    
 
-                //prices[i] = get_max_price(items[i]);
-                //console.log('item: ' + i + ' debug: 4 - set variable maxPrice to function maxPrice(): ' + prices[i] + '<br>');
-
-                orderType[i] = data[i].getAttribute('bid');
-                if (orderType[i] != 1) {
-                    console.log('item: ' + i + ' debug 5 - buy or sell: Buy');
-                } else {
-                    console.log('item: ' + i + ' debug 5 - buy or sell: Sell')
                 }
                 
-                
-
-            }
             
-           
-        }
-        console.log('Preparing to get item names. items array: ' + items);
-        names = get_item_name(items);
-        console.log('Got these names into the names array: ' + names);
-        console.log('Preparing to get prices: items array: ' + items);
-        prices = get_max_price(items);
-        console.log('Got these prices from the prices array: ' + prices);
+            }
+            items.sort();
+            if (items.length > 0) {
+                console.log('Preparing to get item names. items array: ' + items);
+                names = get_item_name(items);
+                console.log('Got these names into the names array: ' + names);
+                console.log('Preparing to get prices: items array: ' + items);
+                prices = get_max_price(items);
+                console.log('Got these prices from the prices array: ' + prices);
+            } else {
+                console.log('No items found');
+            }
+
+            // Iterate through our arrays and put them onto the DOM
+            for (i = 0; i < items.length; i++) {
+                $('#mainContent').append(orderType[i] + ' order <br>');
+                $('#mainContent').append('stationID: ' + stations[i] + '<br>');
+                $('#mainContent').append('typeID: ' + items[i] + '<br>');
+                $('#mainContent').append('Item name: : ' + names[i] + '<br>');
+
+                if (items[i] === items[i-1]) {
+                    prices.splice(i, 0, prices[i-1]);
+                    // console.log(prices[i]);
+                    $('#mainContent').append('Price: : ' + prices[i] + '<br>');
+                } else {
+                    $('#mainContent').append('Price: : ' + prices[i] + '<br>');
+                }
+                $('#mainContent').append('My price: ' + myPrice[i] + '<br><br>')
+                
+            }
 
     }
 
