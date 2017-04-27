@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<body>
+<!--    <script src="evecentral.js"></script> -->
+    <script src="eveapi.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+
+    <p>Key: <input name="Key" type="text" maxlength="255" id="keyID" class="inputText" /></p>
+    <p>Verification: <input name="verification" type="text" maxlength="255" id="vCode" class="inputText" /></p>
+    <input type="button" value="Go" onclick="knapptryck(keyID.value, vCode.value);">
+    <div id="mainContent"></div>
+
+  <script>
+
+    if (localStorage.getItem('keyID') != null) {
+        document.getElementById('keyID').value = localStorage.getItem('keyID');
+        document.getElementById('vCode').value = localStorage.getItem('vCode');
+    }
+
+    function knapptryck(keyID, vCode) {
+
+       starta_skiten(keyID, vCode);
+       //console.log(station);
+       
+        // console.log(price);
+
+        // Save the input values
+        localStorage.setItem('keyID', keyID);
+        localStorage.setItem('vCode', vCode);
+    }
+
+
+    function get_max_price(items) {
+
+        var xhr2 = new XMLHttpRequest();
+        var typeIDs = "";
+        var maxItemPrice = [];
+        for (i = 0; i < items.length; i++) {
+            typeIDs += "&typeid=" + items[i];
+            console.log('get_max_price typeIDs: ' + typeIDs);
+        }
+
+        xhr2.open("GET", "http://api.eve-central.com/api/marketstat/json?" + typeIDs, false);
+        console.log('maxPrice opening: http://api.eve-central.com/api/marketstat/json?' + typeIDs )
+        xhr2.setRequestHeader('Content-Type', 'text/plain');
+        xhr2.send();
+
+        var data = JSON.parse(xhr2.response);
+        for (i = 0; i < data.length; i++) {
+            maxItemPrice[i] = data[i].buy.max;
+        }
+        return maxItemPrice;
+
+    }
+
+
+    function starta_skiten(keyID, vCode) {
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "https://api.eveonline.com/char/MarketOrders.xml.aspx?keyID=" + keyID + "&vCode=" + vCode, false);
+
+        //xhr.setRequestHeader('Content-Type', 'text/xml');
+        xhr.send();
+
+        var xmlDocument = xhr.responseXML;
+        var data = xmlDocument.getElementsByTagName("row");
+
+        document.getElementById('mainContent').innerHTML = "";
+
+        var stations = [];
+        var items = [];
+        var prices = [];
+        var names = [];
+        var orderType = [];  // Buy or sell order
+
+        for (i = 0; i < data.length; i++) {
+
+            // orderState:  0 = open/active 1 = closed, 2 = expired, 3 = cancelled, 4 = pending, 5 = character deleted
+
+            if (data[i].getAttribute('orderState') == "2") {
+
+                stations[i] = data[i].getAttribute('stationID');
+                console.log('item: ' + i + ' debug: 1 - stationID: ' + stations[i] + '<br>');
+
+                items[i] = data[i].getAttribute('typeID');
+                console.log('item: ' + i + ' debug: 2 - typeID: ' + items[i] + '<br>');
+
+                //names[i] = get_item_name(items[i]);
+                //console.log('item: ' +i + ' debug: 3 - item name: ' + names[i]);
+                console.log(data[i].getAttribute(''))
+
+                //prices[i] = get_max_price(items[i]);
+                //console.log('item: ' + i + ' debug: 4 - set variable maxPrice to function maxPrice(): ' + prices[i] + '<br>');
+
+                orderType[i] = data[i].getAttribute('bid');
+                if (orderType[i] != 1) {
+                    console.log('item: ' + i + ' debug 5 - buy or sell: Buy');
+                } else {
+                    console.log('item: ' + i + ' debug 5 - buy or sell: Sell')
+                }
+                
+                
+
+            }
+            
+           
+        }
+        console.log('Preparing to get item names. items array: ' + items);
+        names = get_item_name(items);
+        console.log('Got these names into the names array: ' + names);
+        console.log('Preparing to get prices: items array: ' + items);
+        prices = get_max_price(items);
+        console.log('Got these prices from the prices array: ' + prices);
+
+    }
+
+    </script>
+</body>
+</html>

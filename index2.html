@@ -65,7 +65,7 @@
     function eveMarketData(typeID, stationID) {
         var xhrEMD = new XMLHttpRequest();
         if ('withCredentials' in xhrEMD) {
-            xhrEMD.open("GET", "http://api.eve-central.com/api/marketstat/json?typeid=" + typeID + "&stationid=" + stationID, true);
+            xhrEMD.open("GET", "http://api.eve-central.com/api/marketstat/json?typeid=" + typeID + "&stationid=" + stationID, false);
 
             xhrEMD.onreadystatechange = function() {
                 if (xhrEMD.readyState == 4) {

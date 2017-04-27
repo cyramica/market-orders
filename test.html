@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<body>
+<!--    <script src="evecentral.js"></script> -->
+    <script src="eveapi.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+
+    <p>Key: <input name="Key" type="text" maxlength="255" id="keyID" class="inputText" /></p>
+    <p>Verification: <input name="verification" type="text" maxlength="255" id="vCode" class="inputText" /></p>
+    <input type="button" value="Go" onclick="knapptryck(keyID.value, vCode.value);">
+    <div id="mainContent"></div>
+
+  <script>
+
+    if (localStorage.getItem('keyID') != null) {
+        document.getElementById('keyID').value = localStorage.getItem('keyID');
+        document.getElementById('vCode').value = localStorage.getItem('vCode');
+    }
+
+    function knapptryck(keyID, vCode) {
+
+       starta_skiten(keyID, vCode);
+       //console.log(station);
+       
+        // console.log(price);
+
+        // Save the input values
+        localStorage.setItem('keyID', keyID);
+        localStorage.setItem('vCode', vCode);
+    }
+
+
+    function get_max_price(typeID) {
+
+        var xhr2 = new XMLHttpRequest();
+
+        xhr2.open("GET", "http://api.eve-central.com/api/marketstat/json?typeid=" + typeID, false);
+        console.log('maxPrice opening: http://api.eve-central.com/api/marketstat/json?typeid=' + typeID )
+        xhr2.setRequestHeader('Content-Type', 'text/plain');
+        xhr2.send();
+
+        var data = JSON.parse(xhr2.response);
+        var maxItemPrice = data[0].buy.max;
+        return maxItemPrice;
+
+    }
+
+
+    function starta_skiten(keyID, vCode) {
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "https://api.eveonline.com/char/MarketOrders.xml.aspx?keyID=" + keyID + "&vCode=" + vCode, false);
+
+        //xhr.setRequestHeader('Content-Type', 'text/xml');
+        xhr.send();
+
+        var xmlDocument = xhr.responseXML;
+        var data = xmlDocument.getElementsByTagName("row");
+
+        document.getElementById('mainContent').innerHTML = "";
+        var newDivs = [];
+
+        for (i = 0; i < data.length; i++) {
+
+            // orderState:  0 = open/active 1 = closed, 2 = expired, 3 = cancelled, 4 = pending, 5 = character deleted
+
+            if (data[i].getAttribute('orderState') == "2") {
+
+                var stationID = data[i].getAttribute('stationID');
+                console.log('item: ' + i + ' debug: 1 - stationID: ' + stationID + '<br>');
+                var typeID = data[i].getAttribute('typeID');
+                console.log('item: ' + i + ' debug: 2 - typeID: ' + typeID + '<br>');
+
+            
+                var item = get_item_name(data[i].getAttribute('typeID'));
+                console.log('item: ' + i + ' debug: 3 - item: ' + item + "<br>");
+                // document.getElementById('mainContent').innerHTML += "stationID: " + stationID + "<br>";
+                $('#mainContent').append('StationID: ' + stationID + '<br>');
+                
+                console.log('item: ' + i + ' debug: 4 - printing station ID to document: ' + stationID);
+                // document.getElementById('mainContent').innerHTML += "Item: " + i + " " + item + "<br><br>";
+                $('#mainContent').append('Item: ' + item + '<br>');
+                console.log('item: ' + i + ' debug: 5 - printing item name to document: ' + item + '<br>');
+
+                var maxPrice2 = get_max_price(typeID);
+                console.log('item: ' + i + ' debug: 6 - set variable maxPrice to function maxPrice(): ' + maxPrice2 + '<br>');
+                //document.getElementById('mainContent').innerHTML += "maxprice: " + maxPrice2 + "<br>";
+                $('#mainContent').append('maxPrice: ' + maxPrice2 + '<br>');
+                console.log('item: ' + i + ' debug: 7 - printed maxprice to document: ' + maxPrice2 + '<br>');
+                
+                
+
+            }
+            
+           
+        }
+
+    }
+
+    </script>
+</body>
+</html>
