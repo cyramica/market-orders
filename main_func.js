@@ -48,6 +48,8 @@ function main_func(keyID, vCode) {
         
         }
 
+
+
         items.sort();
         if (items.length > 0) {
             console.log('Preparing to get item names. items array: ' + items);
@@ -70,6 +72,8 @@ function main_func(keyID, vCode) {
             
             
         }
+
+
 
         var priceList = item_price_list(items, prices);
         // console.log(priceList);
